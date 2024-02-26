@@ -1,0 +1,12 @@
+@startuml
+binary ",input" as W0
+binary ",input" as W1
+binary ",output" as W2
+
+@0
+W0 is {low,high}
+W1 is {low,high}
+W2 is {low,high}
+
+@enduml
+

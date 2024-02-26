@@ -4,6 +4,7 @@
 
 #include "gate.h"
 #include "wire.h"
+#include "event.h"
 
 Gate::Gate(int num_inputs, Wire* output) 
 	: m_output(output), m_inputs(num_inputs), m_delay(0), m_current_state('X')
@@ -88,3 +89,23 @@ Event* Or2Gate::update(uint64_t current_time)
 	}
   return e;
 }
+NotGate::NotGate(Wire* input, Wire* output) : Gate(1, output) {
+    wireInput(0, input);
+}
+
+Event* NotGate::update(uint64_t current_time) {
+    char inputState = m_inputs[0]->getState();
+    char newState = 'X'; // Undefined state by default
+
+    // Implementing the NOT truth table
+    if (inputState == '0') newState = '1';
+    else if (inputState == '1') newState = '0';
+    else newState = 'X'; // Maintain undefined if input is undefined
+
+    // Only generate an event if state changes
+    if (newState != m_current_state) {
+        m_current_state = newState;
+        return new Event{current_time + m_delay, m_output, newState};
+    }
+
+    return nullptr; }
