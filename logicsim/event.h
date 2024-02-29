@@ -11,8 +11,12 @@ struct Event {
 
 struct EventLess {
     bool operator()(const Event* lhs, const Event* rhs) const {
-        return lhs->time < rhs->time;
+        if (lhs->time == rhs->time) {
+            return lhs->wire->getId() > rhs->wire->getId(); // Prioritize wire with smaller ID
+        }
+        return lhs->time > rhs->time; // Prioritize earlier time
     }
 };
+
 
 #endif 

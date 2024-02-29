@@ -25,15 +25,12 @@ int Wire::getId() const
     return m_id;
 }
 
-std::string Wire::setState(char s, uint64_t current_time)
-{
+std::string Wire::setState(char s, uint64_t current_time) {
     std::stringstream ss("");
     
     std::set<char> valid_states {'0','1','X'};
-    if(valid_states.find(s) != valid_states.end())
-    {
-        if(m_state != s && m_name != "")
-        {
+    if(valid_states.find(s) != valid_states.end()) {
+        if(m_state != s && m_name != "") {
             std::string uml_state("");
             if(s == '0') uml_state = "low";
             if(s == '1') uml_state = "high";

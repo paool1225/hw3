@@ -63,39 +63,97 @@ bool Circuit::parse(const char* fname) {
                 m_wires.push_back(new Wire(id, name));
             }
         } else if (line == "GATES") {
-            // Handle gate definitions, similar approach for parsing
+            // Handle gate definitions
+            int n;
+            inFile >> n;
+            std::string dummyLine;
+            getline(inFile, dummyLine); // To consume the newline character after reading n
+            for (int i = 0; i < n; ++i) {
+                getline(inFile, line);
+                std::istringstream gateStream(line);
+                std::string gateType;
+                int input1, input2, output;
+                char delimiter;
+
+                gateStream >> gateType;
+
+                if (gateType == "AND2" || gateType == "OR2") {
+                    gateStream >> input1 >> delimiter >> input2 >> delimiter >> output;
+                    if (gateType == "AND2") {
+                        m_gates.push_back(new And2Gate(m_wires[input1], m_wires[input2], m_wires[output]));
+                    } else if (gateType == "OR2") {
+                        m_gates.push_back(new Or2Gate(m_wires[input1], m_wires[input2], m_wires[output]));
+                    }
+                } else if (gateType == "NOT") {
+                    gateStream >> input1 >> delimiter >> output;
+                    m_gates.push_back(new NotGate(m_wires[input1], m_wires[output]));
+                }
+                // Add additional gate types as needed
+            }
         } else if (line == "INJECT") {
-            // Handle event injections, ensuring events are queued correctly
+            // Handle event injections
+            int n;
+            inFile >> n;
+            std::string dummyLine;
+            getline(inFile, dummyLine); // Consume the line
+            for (int i = 0; i < n; ++i) {
+                getline(inFile, line);
+                std::istringstream eventStream(line);
+                int time, wireId;
+                char state, delimiter;
+                eventStream >> time >> delimiter >> wireId >> delimiter >> state;
+                m_pq.push(new Event{static_cast<uint64_t>(time), m_wires[wireId], state});
+            }
         }
     }
     return true;
 }
 
 
+
 bool Circuit::advance(std::ostream& os) {
     if (m_pq.empty()) return false;
 
     m_current_time = m_pq.top()->time;
-    std::stringstream ss;
-    ss << "@" << m_current_time << std::endl;
-    bool updated = false;
+    bool initialPrinted = false; // Flag to track if initial wire definitions and timestamp header are printed
+    bool stateChanged = false;   // Flag to track if any wire state has changed
 
+    // Process events at the current timestamp
     while (!m_pq.empty() && m_pq.top()->time == m_current_time) {
         Event* e = m_pq.top();
         m_pq.pop();
 
+        // Log the change immediately
         std::string changeLog = e->wire->setState(e->state, m_current_time);
         if (!changeLog.empty()) {
-            ss << changeLog << std::endl;
-            updated = true;
+            stateChanged = true; // Set the flag indicating a state change
         }
+
         delete e;
     }
 
-    if (updated) {
-        os << ss.str();
+    // Start the UML diagram if there were state changes or at the initial timestamp
+    if (stateChanged || !initialPrinted) {
+        startUml(os);
+        os << "@" << m_current_time << std::endl;
+        initialPrinted = true;
     }
 
+    // Print wire states if there were state changes or at the initial timestamp
+    if (stateChanged) {
+        for (auto w : m_wires) {
+            if (!w->getName().empty()) {
+                os << "W" << w->getId() << " is ";
+                if (w->getState() == 'X') {
+                    os << "X" << std::endl;
+                } else {
+                    os << (w->getState() == '0' ? "low" : "high") << std::endl;
+                }
+            }
+        }
+    }
+
+    // Update gates and push new events
     for (auto& gate : m_gates) {
         Event* e = gate->update(m_current_time);
         if (e != nullptr) {
@@ -103,8 +161,17 @@ bool Circuit::advance(std::ostream& os) {
         }
     }
 
-    return true;
+    // End the UML diagram if it was started
+    if (initialPrinted) {
+        endUml(os);
+    }
+
+    // Return true if there were state changes or at the initial timestamp
+    return stateChanged || !initialPrinted;
 }
+
+
+
 
 void Circuit::run(std::ostream& os) {
     while (advance(os)) {}
