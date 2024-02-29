@@ -1,78 +1,115 @@
 #ifndef HEAP_H
 #define HEAP_H
-#include <vector>
 #include <functional>
 #include <stdexcept>
+#include <vector>
+
 
 template <typename T, typename PComparator = std::less<T> >
-class Heap {
+class Heap
+{
 public:
-    Heap(int m=2, PComparator c = PComparator()) : ary(m), comp(c) {}
 
-    void push(const T& item) {
-        elems.push_back(item);
-        heapifyUp(elems.size() - 1);
-    }
-
-    void pop() {
-        if (empty()) {
-            throw std::underflow_error("Heap is empty");
-        }
-        std::swap(elems[0], elems.back());
-        elems.pop_back();
-        heapifyDown(0);
-    }
-
-    T const & top() const {
-        if (empty()) {
-            throw std::underflow_error("Heap is empty");
-        }
-        return elems.front();
-    }
-
-    bool empty() const {
-        return elems.empty();
-    }
-
-    size_t size() const {
-        return elems.size();
-    }
+  Heap(int m=2, PComparator c = PComparator());
+  ~Heap();
+  void push(const T& item);
+  T const & top() const;
+  void pop();
+  bool empty() const;
+  int size() const;
 
 private:
-    std::vector<T> elems; 
-    int ary; 
-    PComparator comp; 
+  void heapify(size_t index);
+  PComparator comp;
+  int k_ary;
+  std::vector<T> h;
 
-    void heapifyUp(size_t idx) {
-        while (idx > 0) {
-            size_t parentIdx = (idx - 1) / ary;
-            if (comp(elems[idx], elems[parentIdx])) {
-                std::swap(elems[idx], elems[parentIdx]);
-                idx = parentIdx;
-            } else {
-                break;
-            }
-        }
-    }
-
-    void heapifyDown(size_t idx) {
-        size_t childIdx = ary * idx + 1; 
-        while (childIdx < elems.size()) {
-            size_t minMaxIdx = idx;
-            for (int i = 0; i < ary && i + childIdx < elems.size(); ++i) {
-                if (comp(elems[childIdx + i], elems[minMaxIdx])) {
-                    minMaxIdx = childIdx + i;
-                }
-            }
-            if (minMaxIdx != idx) {
-                std::swap(elems[idx], elems[minMaxIdx]);
-                idx = minMaxIdx;
-                childIdx = ary * idx + 1;
-            } else {
-                break;
-            }
-        }
-    }
 };
+template <typename T, typename PComparator>
+bool Heap<T,PComparator>::empty() const{
+  return h.size()==0;
+}
 
-#endif 
+template <typename T, typename PComparator>
+Heap<T,PComparator>::Heap(int m, PComparator c){
+  comp = c;
+  if(m < 2){
+    throw std::logic_error("can't have value under 2");
+  }
+  k_ary = m;
+
+}
+template <typename T, typename PComparator>
+Heap<T,PComparator>::~Heap(){
+  
+}
+
+template <typename T, typename PComparator>
+int Heap<T,PComparator>::size() const{
+  return h.size();
+}
+
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::heapify(size_t index){
+  size_t leafid; 
+  size_t pri = k_ary*index + 1; 
+
+  if(k_ary*index + 1 > h.size()-1){
+    return;
+  }
+  else{
+    for(int i = 2; i <= k_ary; i++){
+      leafid = k_ary*index + i;
+      if(leafid < h.size()){
+        if(comp(h[leafid], h[pri])){
+          pri = leafid;
+        }
+      }
+    }
+    if(comp(h[pri], h[index])){
+      std::swap(h[pri], h[index]);
+      heapify(pri);
+    }
+  }
+}
+
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::push(const T& item){
+    h.push_back(item);
+    int loc = h.size()-1;
+    int parent = (loc-1)/k_ary;
+    while(loc >= 0 && comp(h[loc], h[parent])){ 
+        std::swap(h[parent], h[loc]);
+        loc = parent;
+        parent = (loc-1)/k_ary;
+    }
+}
+template <typename T, typename PComparator>
+T const & Heap<T,PComparator>::top() const
+{
+  
+  if(empty()){
+    
+    throw std::underflow_error("Heap is empty");
+  }
+ 
+  return h[0]; 
+
+}
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::pop()
+{
+  if(empty()){
+    
+    throw std::underflow_error("Heap is empty");
+
+  }
+  if(h.size() == 1){
+    h.pop_back();
+    return;
+  }
+  std::swap(h[0], h[h.size()-1]);
+  h.pop_back();
+  heapify(0);
+}
+#endif

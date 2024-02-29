@@ -4,33 +4,38 @@
 #include "llrec.h"
 using namespace std;
 
+// Function prototypes for clarity
 Node* readList(const char* filename);
 void print(Node* head);
 void dealloc(Node* head);
 
-Node* readList(const char* filename) {
+// Reads a list of integers from a file and creates a linked list
+Node* readList(const char* filename)
+{
     Node* h = NULL;
     ifstream ifile(filename);
     int v;
-    if(!(ifile >> v)) return h;
+    if( ! (ifile >> v) ) return h;
     h = new Node(v, NULL);
     Node *t = h;
-    while(ifile >> v) {
+    while ( ifile >> v ) {
         t->next = new Node(v, NULL);
         t = t->next;
     }
     return h;
 }
-
-void print(Node* head) {
+// Prints the values in the linked list
+void print(Node* head)
+{
     while(head) {
         cout << head->val << " ";
         head = head->next;
     }
     cout << endl;
 }
-
-void dealloc(Node* head) {
+// Deallocates the memory used by the linked list
+void dealloc(Node* head)
+{
     Node* temp;
     while(head) {
         temp = head->next;
@@ -39,44 +44,94 @@ void dealloc(Node* head) {
     }
 }
 
-struct IsOdd {
-    bool operator()(int value) {
-        return value % 2 != 0;
+
+// Struct to check if an integer is odd
+struct isOdd
+{ 
+    bool operator()(const int& val)
+    {
+        if (val % 2 == 1)
+        {
+            return true;
+        }
+        
+        return false;
     }
 };
 
-int main(int argc, char* argv[]) {
+// Struct to check if an integer is divisible by three
+struct isDivisByThree
+{ 
+    bool operator()(const int& val)
+    {
+        if (val % 3 == 0)
+        {
+            return true;
+        }
+        
+        return false;
+    }
+};
+
+
+// Struct to check if an integer is less than ten
+struct isLessThanTen
+{ 
+    bool operator()(const int& val)
+    {
+        if (val < 10)
+        {
+            return true;
+        }
+        
+        return false;
+    }
+};
+
+int main(int argc, char* argv[])
+{
     if(argc < 2) {
         cout << "Please provide an input file" << endl;
         return 1;
     }
 
+
+
     Node* head = readList(argv[1]);
-    cout << "Original list: ";
+    cout << "Original list: " << endl;
     print(head);
 
-    // Test llpivot
-    Node* smaller = nullptr;
-    Node* larger = nullptr;
-    int pivot = 5;
-    llpivot(head, smaller, larger, pivot);
-    cout << "Smaller than or equal to " << pivot << ": ";
-    print(smaller);
-    cout << "Larger than " << pivot << ": ";
-    print(larger);
+    
+    isOdd c1;
+    isDivisByThree c2;
+    isLessThanTen c3;
 
-    // Deallocate smaller and larger lists
-    dealloc(smaller);
-    dealloc(larger);
+    Node* g = llfilter(head, c1);
+    cout << "Filtered if odd number list: " << endl;
+    print(g);
+    dealloc(head);
 
-    // Re-read list for llfilter test
     head = readList(argv[1]);
-    Node* filtered = llfilter(head, IsOdd());
-    cout << "After filtering odd numbers: ";
-    print(filtered);
+    cout << "Original list: " << endl;
+    print(head);
 
-    // Deallocate filtered list
-    dealloc(filtered);
+    Node* h = llfilter(head, c2);
+    cout << "Filter if divisible by three list: " << endl;
+    print(h);
+    dealloc(head);
 
+    head = readList(argv[1]);
+    cout << "Original list: " << endl;
+    print(head);
+
+    Node* i = llfilter(head, c3);
+    cout << "Filter if less than ten list: " << endl;
+    print(i);
+    dealloc(head);
+
+
+
+    
     return 0;
+
 }
