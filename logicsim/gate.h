@@ -1,5 +1,6 @@
 #ifndef GATE_H
 #define GATE_H
+
 #include <vector>
 #include <queue>
 #include <tuple>
@@ -12,7 +13,7 @@ class Gate
         Gate(int, Wire*);
         virtual ~Gate();
         virtual Event* update(uint64_t) =0;
-        void wireInput(unsigned int,Wire*);
+        void wireInput(unsigned int,Wire*); 
     protected:
       Wire* m_output;
       std::vector<Wire*> m_inputs;
@@ -36,4 +37,5 @@ class NotGate : public Gate{
       NotGate(Wire*, Wire*); 
       Event* update(uint64_t);
 };
+
 #endif
