@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
+//included heap.h from hw 3 folder//
 #include "../heap.h"
 #include "wire.h"
 #include "gate.h"
@@ -26,7 +26,7 @@ Circuit::~Circuit()
         delete i;
     }
 }
-
+//Circuit tests
 void Circuit::test()
 {
     m_wires.push_back(new Wire(0, "input A"));
@@ -49,7 +49,7 @@ void Circuit::test()
 	m_pq.push(e);
 	
 }
-
+//Circuit parsing
 bool Circuit::parse(const char* fname)
 {
     std::ifstream inFile(fname);
@@ -140,7 +140,7 @@ bool Circuit::parse(const char* fname)
     }
     return true;
 }
-
+//Advanded circuit
 bool Circuit::advance(std::ostream& os)
 {
 	if(m_pq.size() == 0)
@@ -187,7 +187,7 @@ bool Circuit::advance(std::ostream& os)
     }
 	return true;
 }
-
+//circuit run
 void Circuit::run(std::ostream& os)
 {
 	
@@ -195,7 +195,7 @@ void Circuit::run(std::ostream& os)
         
 	}
 }
-
+//circuit startUml
 void Circuit::startUml(std::ostream& os)
 {
 	os << "@startuml" << std::endl;
@@ -218,7 +218,7 @@ void Circuit::startUml(std::ostream& os)
     os << std::endl;
     
 }
-
+//circuit endUml
 void Circuit::endUml(std::ostream& os)
 {
     os << "@enduml" << std::endl;

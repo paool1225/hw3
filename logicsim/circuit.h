@@ -1,7 +1,7 @@
 #ifndef CIRCUIT_H
 #define CIRCUIT_H
 #include <vector>
-
+//included heal.h from hw3 file//
 #include "../heap.h"
 #include "event.h"
 #include "gate.h"

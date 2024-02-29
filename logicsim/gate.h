@@ -32,6 +32,7 @@ class Or2Gate : public Gate
       Or2Gate(Wire*, Wire*, Wire*);
       Event* update(uint64_t);
 };
+//Not gate//
 class NotGate : public Gate{
   public:
       NotGate(Wire*, Wire*); 

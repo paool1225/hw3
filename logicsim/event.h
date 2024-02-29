@@ -8,6 +8,7 @@ struct Event
     Wire* wire;
     char state;
 };
+//structure for operating events by time//
 typedef struct EventLess {
          
          bool operator()(Event* e1, Event* e2) {
