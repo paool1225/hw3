@@ -4,195 +4,222 @@
 #include <sstream>
 #include <fstream>
 
-#include "../heap.h" 
+#include "../heap.h"
 #include "wire.h"
 #include "gate.h"
 #include "circuit.h"
 #include "event.h"
 
-Circuit::Circuit() : m_current_time(0) {}
+Circuit::Circuit() : m_current_time(0)
+{
+    
+}
 
-Circuit::~Circuit() {
-    for (auto i : m_wires) {
+Circuit::~Circuit()
+{
+    for(auto i : m_wires)
+    {
         delete i;
     }
-    for (auto i : m_gates) {
+    for(auto i : m_gates)
+    {
         delete i;
     }
 }
 
-void Circuit::test() {
-    // Initial test setup, you may need to adjust based on the test circuit
+void Circuit::test()
+{
     m_wires.push_back(new Wire(0, "input A"));
-    m_wires.push_back(new Wire(1, "input B"));
-    m_wires.push_back(new Wire(2, "output"));
-
+	m_wires.push_back(new Wire(1, "input B"));
+	m_wires.push_back(new Wire(2, "output"));
+    
     Gate* g = new And2Gate(m_wires[0], m_wires[1], m_wires[2]);
-    m_gates.push_back(g);
+	m_gates.push_back(g);
+    
+	Event* e = new Event {0,m_wires[0],'0'};
+	m_pq.push(e);
+	
+	e = new Event {0,m_wires[1],'1'};
+	m_pq.push(e);
+	
+	e = new Event {4,m_wires[0],'1'};
+	m_pq.push(e);
 
-    // Example events to start the simulation
-    m_pq.push(new Event {0, m_wires[0], '0'});
-    m_pq.push(new Event {0, m_wires[1], '1'});
-    m_pq.push(new Event {4, m_wires[0], '1'});
-    m_pq.push(new Event {6, m_wires[1], '0'});
+  e = new Event {6,m_wires[1],'0'};
+	m_pq.push(e);
+	
 }
 
-bool Circuit::parse(const char* fname) {
+bool Circuit::parse(const char* fname)
+{
     std::ifstream inFile(fname);
-    if (!inFile) {
-        std::cerr << "Failed to open file: " << fname << std::endl;
+    if(!inFile)
+    {
         return false;
     }
-
+    
     std::string line;
-    while (getline(inFile, line)) {
-        if (line == "WIRES") {
-            // Handle wire definitions
-            int n;
-            inFile >> n;
-            std::string dummyLine;
-            getline(inFile, dummyLine); // To consume the newline character after reading n
-            for (int i = 0; i < n; ++i) {
-                getline(inFile, line);
-                std::istringstream wireStream(line);
-                int id;
-                std::string name;
-                char delimiter;
-                wireStream >> id >> delimiter; // Assuming a comma ',' or some delimiter is used
-                std::getline(wireStream, name);
-                m_wires.push_back(new Wire(id, name));
+    while( getline(inFile, line))
+    {
+        if(line == "WIRES")
+        {
+            std::string t_line;
+            getline(inFile,t_line);
+            int n = stoi(t_line);
+            for(int i = 0;i<n;i++)
+            {
+                getline(inFile,t_line);
+                std::stringstream ss(t_line);
+                std::string s_id;
+                getline(ss, s_id, ',');
+                std::string s_name;
+                getline(ss, s_name, ',');
+                m_wires.push_back(new Wire(stoi(s_id), s_name));
             }
-        } else if (line == "GATES") {
-            // Handle gate definitions
-            int n;
-            inFile >> n;
-            std::string dummyLine;
-            getline(inFile, dummyLine); // To consume the newline character after reading n
-            for (int i = 0; i < n; ++i) {
-                getline(inFile, line);
-                std::istringstream gateStream(line);
-                std::string gateType;
-                int input1, input2, output;
-                char delimiter;
-
-                gateStream >> gateType;
-
-                if (gateType == "AND2" || gateType == "OR2") {
-                    gateStream >> input1 >> delimiter >> input2 >> delimiter >> output;
-                    if (gateType == "AND2") {
-                        m_gates.push_back(new And2Gate(m_wires[input1], m_wires[input2], m_wires[output]));
-                    } else if (gateType == "OR2") {
-                        m_gates.push_back(new Or2Gate(m_wires[input1], m_wires[input2], m_wires[output]));
-                    }
-                } else if (gateType == "NOT") {
-                    gateStream >> input1 >> delimiter >> output;
-                    m_gates.push_back(new NotGate(m_wires[input1], m_wires[output]));
+        }
+        if(line == "GATES")
+        {
+            std::string t_line;
+            getline(inFile,t_line);
+            int n = stoi(t_line);
+            for(int i = 0;i<n;i++)
+            {
+                getline(inFile,t_line);
+                std::stringstream ss(t_line);
+                std::string s_type;
+                getline(ss, s_type, ',');
+                if(s_type == "AND2")
+                {
+                    std::string s_in1;
+                    getline(ss, s_in1, ',');
+                    std::string s_in2;
+                    getline(ss, s_in2, ',');
+                    std::string s_output;
+                    getline(ss, s_output, ',');
+                    m_gates.push_back(new And2Gate(m_wires[stoi(s_in1)], m_wires[stoi(s_in2)], m_wires[stoi(s_output)]));
                 }
-                // Add additional gate types as needed
+                if(s_type == "OR2")
+                {
+                    std::string s_in1;
+                    getline(ss, s_in1, ',');
+                    std::string s_in2;
+                    getline(ss, s_in2, ',');
+                    std::string s_output;
+                    getline(ss, s_output, ',');
+                    m_gates.push_back(new Or2Gate(m_wires[stoi(s_in1)], m_wires[stoi(s_in2)], m_wires[stoi(s_output)]));
+                }
+                if(s_type == "NOT")
+                {
+                    std::string s_in1;
+                    getline(ss, s_in1, ',');
+                    std::string s_output;
+                    getline(ss, s_output, ',');
+                    m_gates.push_back(new NotGate(m_wires[stoi(s_in1)], m_wires[stoi(s_output)]));
+                }
             }
-        } else if (line == "INJECT") {
-            // Handle event injections
-            int n;
-            inFile >> n;
-            std::string dummyLine;
-            getline(inFile, dummyLine); // Consume the line
-            for (int i = 0; i < n; ++i) {
-                getline(inFile, line);
-                std::istringstream eventStream(line);
-                int time, wireId;
-                char state, delimiter;
-                eventStream >> time >> delimiter >> wireId >> delimiter >> state;
-                m_pq.push(new Event{static_cast<uint64_t>(time), m_wires[wireId], state});
+        }
+        if(line == "INJECT")
+        {
+            std::string t_line;
+            getline(inFile,t_line);
+            int n = stoi(t_line);
+            for(int i = 0;i<n;i++)
+            {
+                getline(inFile,t_line);
+                std::stringstream ss(t_line);
+                std::string s_time;
+                getline(ss, s_time, ',');
+                std::string s_wire;
+                getline(ss, s_wire, ',');
+                std::string s_state;
+                getline(ss, s_state, ',');
+            	Event* e = new Event {static_cast<uint64_t>(stoi(s_time)),m_wires[stoi(s_wire)],s_state[0]};
+            	m_pq.push(e);
             }
         }
     }
     return true;
 }
 
-
-
-bool Circuit::advance(std::ostream& os) {
-    if (m_pq.empty()) return false;
-
+bool Circuit::advance(std::ostream& os)
+{
+	if(m_pq.size() == 0)
+	{
+		return false;
+	}
+    
     m_current_time = m_pq.top()->time;
-    bool initialPrinted = false; // Flag to track if initial wire definitions and timestamp header are printed
-    bool stateChanged = false;   // Flag to track if any wire state has changed
-
-    // Process events at the current timestamp
-    while (!m_pq.empty() && m_pq.top()->time == m_current_time) {
-        Event* e = m_pq.top();
-        m_pq.pop();
-
-        // Log the change immediately
-        std::string changeLog = e->wire->setState(e->state, m_current_time);
-        if (!changeLog.empty()) {
-            stateChanged = true; // Set the flag indicating a state change
-        }
-
-        delete e;
-    }
-
-    // Start the UML diagram if there were state changes or at the initial timestamp
-    if (stateChanged || !initialPrinted) {
-        startUml(os);
-        os << "@" << m_current_time << std::endl;
-        initialPrinted = true;
-    }
-
-    // Print wire states if there were state changes or at the initial timestamp
-    if (stateChanged) {
-        for (auto w : m_wires) {
-            if (!w->getName().empty()) {
-                os << "W" << w->getId() << " is ";
-                if (w->getState() == 'X') {
-                    os << "X" << std::endl;
-                } else {
-                    os << (w->getState() == '0' ? "low" : "high") << std::endl;
-                }
+    std::stringstream ss;
+    ss << "@" << m_current_time << std::endl;
+    bool updated = false;
+    
+    while(m_pq.top()->time == m_current_time)
+    {
+        if(m_pq.size() >= 1)
+        {
+            std::string temp = m_pq.top()->wire->setState(m_pq.top()->state, m_current_time);
+            if(temp != "")
+            {
+                ss << temp << std::endl;
+                updated = true;
             }
+            delete m_pq.top();
+            m_pq.pop();
+            if(m_pq.size() == 0) break;
         }
+        else
+        {
+            break;
+        }
+        
     }
-
-    // Update gates and push new events
-    for (auto& gate : m_gates) {
-        Event* e = gate->update(m_current_time);
-        if (e != nullptr) {
+    if(updated)
+    {
+        os << ss.str();
+    }
+    for(auto g : m_gates)
+    {
+        Event* e = g->update(m_current_time);
+        if(e)
+        {
             m_pq.push(e);
         }
     }
-
-    // End the UML diagram if it was started
-    if (initialPrinted) {
-        endUml(os);
-    }
-
-    // Return true if there were state changes or at the initial timestamp
-    return stateChanged || !initialPrinted;
+	return true;
 }
 
-
-
-
-void Circuit::run(std::ostream& os) {
-    while (advance(os)) {}
+void Circuit::run(std::ostream& os)
+{
+	
+	while(advance(os)){
+        
+	}
 }
 
-void Circuit::startUml(std::ostream& os) {
-    os << "@startuml" << std::endl;
-    for (auto w : m_wires) {
-        if (!w->getName().empty()) {
-            os << "binary \"" << w->getName() << "\" as W" << w->getId() << std::endl;
-        }
-    }
-    os << std::endl << "@0" << std::endl;
-    for (auto w : m_wires) {
-        if (!w->getName().empty()) {
-            os << "W" << w->getId() << " is {low,high}" << std::endl;
-        }
-    }
+void Circuit::startUml(std::ostream& os)
+{
+	os << "@startuml" << std::endl;
+    for(auto w : m_wires)
+    {
+        if(w->getName().size() > 0)
+				{
+					os << "binary " << "\"" << w->getName() << "\"" << " as W" << w->getId() << std::endl;
+				}
+		}
     os << std::endl;
+    os << "@0" << std::endl;
+    for(auto w : m_wires)
+    {
+        if(w->getName().size() > 0)
+				{
+					os << "W" << w->getId() << " is {low,high} " << std::endl;
+				}
+		}
+    os << std::endl;
+    
 }
 
-void Circuit::endUml(std::ostream& os) {
+void Circuit::endUml(std::ostream& os)
+{
     os << "@enduml" << std::endl;
 }
