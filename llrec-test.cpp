@@ -80,38 +80,38 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    Node* head = readList(argv[1]);
+    // Test for odd numbers
+    Node* head = readList(argv[1]); // Initialize head for the first test
     cout << "Original list: " << endl;
     print(head);
 
     isOdd c1;
-    isDivisByThree c2;
-    isLessThanTen c3;
-
     Node* g = llfilter(head, c1);
     cout << "Filtered if odd number list: " << endl;
     print(g);
-    dealloc(g); 
+    dealloc(g); // Deallocate filtered list
+    dealloc(head); // Deallocate the original list after use
 
-    head = readList(argv[1]);
+    // Test for divisible by three
+    head = readList(argv[1]); // Reinitialize head for the second test
     cout << "Original list: " << endl;
     print(head);
 
+    isDivisByThree c2;
     Node* h = llfilter(head, c2);
     cout << "Filter if divisible by three list: " << endl;
     print(h);
     dealloc(h); 
+    dealloc(head); 
 
-    head = readList(argv[1]);
+    head = readList(argv[1]); 
     cout << "Original list: " << endl;
     print(head);
 
+    isLessThanTen c3;
     Node* i = llfilter(head, c3);
     cout << "Filter if less than ten list: " << endl;
     print(i);
     dealloc(i); 
-
-    dealloc(head); 
-
     return 0;
 }
