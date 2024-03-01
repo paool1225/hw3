@@ -30,4 +30,4 @@ Node* llfilter(Node* head, Comp pred) {
     }
 }
 
-#endif 
+#endif
