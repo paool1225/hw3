@@ -3,28 +3,23 @@
 #include <vector>
 #include <stdexcept>
 
-
 template <typename T>
 class Stack : private std::vector<T> {
 public:
     Stack(); 
-    ~Stack(); 
+    // The destructor is unnecessary to define explicitly if it does nothing.
+    // The default destructor provided by the compiler is sufficient since
+    // std::vector's destructor will be called automatically to clean up.
     bool empty() const; 
     size_t size() const; 
     void push(const T& item); 
     void pop(); 
     const T& top() const; 
-
-
-private:
 };
 
 template <typename T>
-Stack<T>::Stack() {
-}
-
-template <typename T>
-Stack<T>::~Stack() {
+Stack<T>::Stack() : std::vector<T>() {
+    // Constructor initializes the vector part of the stack.
 }
 
 template <typename T>
@@ -55,7 +50,7 @@ const T& Stack<T>::top() const {
     if (this->empty()) { 
         throw std::underflow_error("Stack is empty");
     }
-    return std::vector<T>::operator[](this->size() - 1); 
+    return std::vector<T>::back(); 
 }
 
 #endif 
