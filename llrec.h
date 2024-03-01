@@ -2,43 +2,32 @@
 #define LLREC_H
 #include <cstdlib>
 
-/**
- * Node struct for both problems
- */
-
-struct Node
-{
+struct Node {
     int val;
-    Node *next;
-
+    Node* next;
     Node(int v, Node* n) : val(v), next(n) {}
 };
 
-
-void llpivot(Node *&head, Node *&smaller, Node *&larger, int pivot);
+void llpivot(Node*& head, Node*& smaller, Node*& larger, int pivot);
 
 template <typename Comp>
 Node* llfilter(Node* head, Comp pred);
 
-
 template <typename Comp>
-Node* llfilter(Node* head, Comp pred)
-{
-    Node* n;
-    
-    if(head == NULL){
+Node* llfilter(Node* head, Comp pred) {
+    if (head == NULL) {
+        return NULL;
+    }
+
+    Node* filteredNext = llfilter(head->next, pred);
+
+    if (pred(head->val)) {
+        delete head;
+        return filteredNext;
+    } else {
+        head->next = filteredNext;
         return head;
-    }
-    Node* temp = head->next;
-    if(!pred(head->val)){
-        n = head;
-        n->next = llfilter(temp, pred);
-        return n;
-    }
-    else{
-        n = llfilter(temp, pred);
-        return n;
     }
 }
 
-#endif
+#endif 
