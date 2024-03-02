@@ -1,7 +1,6 @@
 #ifndef LLREC_H
 #define LLREC_H
-#include <cstdlib>
-
+//Originally had cstdlib but got rid of it//
 struct Node {
     int val;
     Node* next;
@@ -15,8 +14,8 @@ Node* llfilter(Node* head, Comp pred);
 
 template <typename Comp>
 Node* llfilter(Node* head, Comp pred) {
-    if (head == NULL) {
-        return NULL;
+    if (!head) { 
+        return nullptr;
     }
 
     Node* filteredNext = llfilter(head->next, pred);
